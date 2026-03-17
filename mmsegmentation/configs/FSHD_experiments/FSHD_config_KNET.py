@@ -1,6 +1,14 @@
+import os
+
 norm_cfg = dict(type='BN', requires_grad=True)
 dataset_type = 'FSHD'
-data_root = '/media/francesco/DEV001/PROJECT-FSHD/DATA/multiLabelFSHD_v2_f4'
+
+# Allow overriding data_root via environment variable; fall back to a repo-relative default
+data_root = os.getenv(
+    'FSHD_DATA_ROOT',
+    os.path.join('data', 'multiLabelFSHD_v2_f4')
+)
+
 crop_size = (512, 512)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
@@ -68,8 +76,10 @@ train_dataloader = dict(
     sampler=dict(type='InfiniteSampler', shuffle=True),
     dataset=dict(
         type='FSHD',
-        data_root=
-        '/media/francesco/DEV001/PROJECT-FSHD/DATA/multiLabelFSHD_v2_f4',
+        data_root = os.getenv(
+    'FSHD_DATA_ROOT',
+    os.path.join('data', 'multiLabelFSHD_v2_f4')
+),
         data_prefix=dict(
             img_path='img_dir/train', seg_map_path='ann_dir/train'),
         pipeline=train_pipeline))
@@ -80,8 +90,10 @@ val_dataloader = dict(
     sampler=dict(type='DefaultSampler', shuffle=False),
     dataset=dict(
         type='FSHD',
-        data_root=
-        '/media/francesco/DEV001/PROJECT-FSHD/DATA/multiLabelFSHD_v2_f4',
+        data_root = os.getenv(
+    'FSHD_DATA_ROOT',
+    os.path.join('data', 'multiLabelFSHD_v2_f4')
+),
         data_prefix=dict(img_path='img_dir/val', seg_map_path='ann_dir/val'),
         pipeline=test_pipeline))
 test_dataloader = dict(
@@ -91,8 +103,10 @@ test_dataloader = dict(
     sampler=dict(type='DefaultSampler', shuffle=False),
     dataset=dict(
         type='FSHD',
-        data_root=
-        '/media/francesco/DEV001/PROJECT-FSHD/DATA/multiLabelFSHD_v2_f4',
+        data_root = os.getenv(
+    'FSHD_DATA_ROOT',
+    os.path.join('data', 'multiLabelFSHD_v2_f4')
+),
         data_prefix=dict(img_path='img_dir/test', seg_map_path='ann_dir/test'),
         pipeline=test_pipeline))
 val_evaluator = dict(type='IoUMetric', iou_metrics=['mIoU'])
