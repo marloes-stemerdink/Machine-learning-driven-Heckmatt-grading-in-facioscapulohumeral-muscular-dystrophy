@@ -4,6 +4,8 @@ This repository implements an automatic and reproducible pipeline for muscle ult
 
 Heckmatt grading is usually performed by visual inspection by experienced clinicians. An example of Heckmatt grading is shown below:
 
+test
+
 ![Figure1](Figure1.png)
 *Examples of Heckmatt grading in the Rectus Femoris muscle. (A) Heckmatt score 1 (Normal): Normal muscle; (B) Heckmatt score 2 (Uncertain): Increased muscle echo intensity with distinct bone echo; (C) Heckmatt score 3 (Abnormal): Marked increased muscle echo intensity with a reduced bone echo; (D) Heckmatt score 4 (Abnormal): Very strong muscle echo and complete loss of bone echo.*
 
