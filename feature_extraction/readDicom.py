@@ -146,7 +146,7 @@ if __name__ == "__main__":
 
     # ---- STEP 2 (after you know the four crop values): batch convert ----
     input_dir = "/mnt/data/Visit1_cleaned/"
-    output_dir = "/mnt/data/Visit1_cleaned_PNG/"
+    output_dir = "/mnt/data/Visit1_PNG/"
     os.makedirs(output_dir, exist_ok=True)
     
     top_crop_px = 148
