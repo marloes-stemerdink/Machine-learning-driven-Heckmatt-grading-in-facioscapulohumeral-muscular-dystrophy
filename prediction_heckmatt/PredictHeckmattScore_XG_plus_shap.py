@@ -300,7 +300,7 @@ def mean_features_with_less_variation_nan_not(group):
     return pd.Series(mean_features)
 
 dataDir = '/home/marloes.stemerdink@mydre.org/Documents/analysis/'
-filename = os.path.join(dataDir, 'data', 'heckMapPlusCharacteristics.xlsx')
+filename = os.path.join(dataDir, 'data', 'dummy_heckMapPlusCharacteristics.xlsx')
 HeckMap = pd.read_excel(filename)
 HeckMap = HeckMap.iloc[5:,:]
 

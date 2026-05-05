@@ -18,8 +18,6 @@ import SimpleITK as sitk  # Import SimpleITK for in-memory image handling
 import multiprocessing
 from functools import partial
 
-# TODO add manual_h_score
-
 def retain_largest_object(mask):
     labeled, num = label(mask)
     sizes = np.bincount(labeled.ravel())
@@ -381,11 +379,11 @@ for muscle in muscle_names:
 df = pd.DataFrame().from_dict(summary)
 
 # Save the DataFrame to a single Excel file
-output_excel_path = f'/home/marloes.stemerdink@mydre.org/Documents/analysis/feature_extraction_output/segmentation_summary_{net}_{experiment}.xlsx'
+output_excel_path = f'/home/marloes.stemerdink@mydre.org/Documents/analysis/results/feature_extraction_output/segmentation_summary_{net}_{experiment}.xlsx'
 df.to_excel(output_excel_path, index=False)
 print(f"\nSummary Excel file saved to: {output_excel_path}")
 
 # Optionally, save the DataFrame to a JSON file as well
-output_json_path = f'/home/marloes.stemerdink@mydre.org/Documents/analysis/feature_extraction_output/segmentation_summary_{net}_{experiment}.json'
+output_json_path = f'/home/marloes.stemerdink@mydre.org/Documents/analysis/results/feature_extraction_output/segmentation_summary_{net}_{experiment}.json'
 df.to_json(output_json_path, indent=4)
 print(f"Summary JSON file saved to: {output_json_path}")
