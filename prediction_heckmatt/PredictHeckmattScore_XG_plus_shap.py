@@ -388,20 +388,20 @@ HeckMap['Code'] = HeckMap['Code'].apply(lambda x: str(int(float(x))).zfill(5) if
 
 HeckMap['Code'] = HeckMap['Code'].astype(str)
 HeckMap['Sex'] = HeckMap['Sex'].astype(str)
-HeckMap['FSHD_age'] = HeckMap['FSHD_age'].astype(str)
-HeckMap['FSHD_BMI'] = HeckMap['FSHD_BMI'].astype(str)
+HeckMap['Age'] = HeckMap['Age'].astype(str)
+HeckMap['BMI'] = HeckMap['BMI'].astype(str)
 
 ##########
 ###### CREATE DATASET
 ##########   
 
-df1 = pd.merge(df, HeckMap[['Code', 'Sex', 'FSHD_age', 'FSHD_BMI']], left_on='subject', right_on='Code', how='left')
+df1 = pd.merge(df, HeckMap[['Code', 'Sex', 'Age', 'BMI']], left_on='subject', right_on='Code', how='left')
 
 # Dropping the 'code' column as it's not required anymore
 df1 = df1.drop('Code', axis=1)
 
 # Rename columns from HeckMap in df
-df1.rename(columns={'Sex': 'sex', 'FSHD_age': 'age', 'FSHD_BMI': 'bmi'}, inplace=True)
+df1.rename(columns={'Sex': 'sex', 'Age': 'age', 'BMI': 'bmi'}, inplace=True)
 
 # Ensure 'muscle_code' and 'side' are strings
 df1['muscle_code'] = df1['muscle_code'].astype(str)
@@ -443,15 +443,15 @@ df_hPred['bmi'] = pd.to_numeric(df_hPred['bmi'], errors='coerce')
 df_hPred['muscleN'] = pd.to_numeric(df_hPred['muscle_code'], errors='coerce')
 
 # Get the dataframe for GT features
-df_gt = df_hPred.loc[:,['subject','muscle','side','age','bmi','sex','muscleN','features_img_pred','features_img_pred_not','manual_h_score']]
+df_gt = df_hPred.loc[:,['subject','muscle_code','side','age','bmi','sex','muscleN','features_img_pred','features_img_pred_not','manual_h_score']]
 
 # Group the DataFrame and calculate the mean of features with less than 10% variation 
 # Nan are used to flag the features with more than N spatial variation
-grouped_df = df_gt.groupby(['subject', 'muscle','side']).apply(mean_features_with_less_variation).reset_index()
-grouped_df_nan = df_gt.groupby(['subject', 'muscle','side']).apply(mean_features_with_less_variation_nan).reset_index()
+grouped_df = df_gt.groupby(['subject', 'muscle_code','side']).apply(mean_features_with_less_variation).reset_index()
+grouped_df_nan = df_gt.groupby(['subject', 'muscle_code','side']).apply(mean_features_with_less_variation_nan).reset_index()
 
-grouped_df_not = df_gt.groupby(['subject', 'muscle','side']).apply(mean_features_with_less_variation_not).reset_index()
-grouped_df_nan_not = df_gt.groupby(['subject', 'muscle','side']).apply(mean_features_with_less_variation_nan_not).reset_index()
+grouped_df_not = df_gt.groupby(['subject', 'muscle_code','side']).apply(mean_features_with_less_variation_not).reset_index()
+grouped_df_nan_not = df_gt.groupby(['subject', 'muscle_code','side']).apply(mean_features_with_less_variation_nan_not).reset_index()
 
 # Calculate the threshold value
 threshold = grouped_df.shape[0] * 0.1
@@ -461,14 +461,14 @@ filtered_df = grouped_df.loc[:, grouped_df_nan.isna().sum() <= threshold]
 filtered_df_not = grouped_df_not.loc[:, grouped_df_nan_not.isna().sum() <= threshold]
 
 # Exclude columns 'subject', 'muscle', and 'side'
-filtered_df = filtered_df.drop(['subject', 'muscle', 'side'], axis=1)
-filtered_df_not = filtered_df_not.drop(['subject', 'muscle', 'side'], axis=1)
+filtered_df = filtered_df.drop(['subject', 'muscle_code', 'side'], axis=1)
+filtered_df_not = filtered_df_not.drop(['subject', 'muscle_code', 'side'], axis=1)
 
 # Transform each row into a dictionary
 data_dict = filtered_df.to_dict(orient='records')
 data_dict_not = filtered_df_not.to_dict(orient='records')
 
-df_hPred_group = df_hPred.groupby(['subject', 'muscle','side']).agg('first').reset_index()
+df_hPred_group = df_hPred.groupby(['subject', 'muscle_code','side']).agg('first').reset_index()
 df_hPred_group["manual_h_score"] = df_hPred_group["manual_h_score"].replace(4,3)
 
 df_hPred_group["features_img_pred"] = data_dict
