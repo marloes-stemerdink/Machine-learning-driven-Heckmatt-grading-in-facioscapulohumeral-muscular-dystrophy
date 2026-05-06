@@ -476,51 +476,51 @@ df_hPred_group["features_img_pred_not"] = data_dict_not
 
 # TODO commented out everything from here
 # load merged_df_out.csv
-df_H_Z = pd.read_csv(os.path.join(dataDir, 'DATA', 'TABULAR', 'merged_df_out.csv'))
+# df_H_Z = pd.read_csv(os.path.join(dataDir, 'DATA', 'TABULAR', 'merged_df_out.csv'))
 
-# change values of 'Muscle' column in df_H_Z using class_to_code_HZ
-df_H_Z['Muscle'] = df_H_Z['Muscle'].map(class_to_code_HZ)
+# # change values of 'Muscle' column in df_H_Z using class_to_code_HZ
+# df_H_Z['Muscle'] = df_H_Z['Muscle'].map(class_to_code_HZ)
 
-# change values of 'Side' column in df_H_Z using side_to_code
-df_H_Z['Side'] = df_H_Z['Side'].map(side_to_code)
+# # change values of 'Side' column in df_H_Z using side_to_code
+# df_H_Z['Side'] = df_H_Z['Side'].map(side_to_code)
 
-# find code-muscle-side combinations that are in df_H_Z but not in df_hPred_group
-df_H_Z['muscle_side'] = df_H_Z['Muscle'] + '_' + df_H_Z['Side']
-df_H_Z = df_H_Z.dropna(axis=0)
+# # find code-muscle-side combinations that are in df_H_Z but not in df_hPred_group
+# df_H_Z['muscle_side'] = df_H_Z['Muscle'] + '_' + df_H_Z['Side']
+# df_H_Z = df_H_Z.dropna(axis=0)
 
-# rename 'Code' column to 'subject'
-df_H_Z.rename(columns={'Code': 'subject'}, inplace=True)
-# rename 'Muscle' column to 'muscle'
-df_H_Z.rename(columns={'Muscle': 'muscle'}, inplace=True)
-# rename 'Side' column to 'side'
-df_H_Z.rename(columns={'Side': 'side'}, inplace=True)
+# # rename 'Code' column to 'subject'
+# df_H_Z.rename(columns={'Code': 'subject'}, inplace=True)
+# # rename 'Muscle' column to 'muscle'
+# df_H_Z.rename(columns={'Muscle': 'muscle'}, inplace=True)
+# # rename 'Side' column to 'side'
+# df_H_Z.rename(columns={'Side': 'side'}, inplace=True)
 
-# Create a multi-index based on the three columns in both dataframes
-index_cols = ['subject', 'muscle', 'side']
-df_hPred_group = df_hPred_group.set_index(index_cols)
-df_B_indexed = df_H_Z.set_index(index_cols)
+# # Create a multi-index based on the three columns in both dataframes
+# index_cols = ['subject', 'muscle', 'side']
+# df_hPred_group = df_hPred_group.set_index(index_cols)
+# df_B_indexed = df_H_Z.set_index(index_cols)
 
-# Find entries in B that are not in A
-entries_not_in_A = df_B_indexed[~df_B_indexed.index.isin(df_hPred_group.index)]
+# # Find entries in B that are not in A
+# entries_not_in_A = df_B_indexed[~df_B_indexed.index.isin(df_hPred_group.index)]
 
-# remove entries_not_in_A from df_H_Z
-df_H_Z_1 = df_B_indexed[~df_B_indexed.index.isin(entries_not_in_A.index)]
+# # remove entries_not_in_A from df_H_Z
+# df_H_Z_1 = df_B_indexed[~df_B_indexed.index.isin(entries_not_in_A.index)]
 
-# on df_hPred_group, set the index to be the same as df_H_Z_1 and keep only manual_h_score
-h_dfhpred1 = df_hPred_group.loc[df_H_Z_1.index, 'manual_h_score']
-h_dfhz1 = df_H_Z_1['H']
+# # on df_hPred_group, set the index to be the same as df_H_Z_1 and keep only manual_h_score
+# h_dfhpred1 = df_hPred_group.loc[df_H_Z_1.index, 'manual_h_score']
+# h_dfhz1 = df_H_Z_1['H']
 
-# change h_dfhpred1 series name to 'H'
-h_dfhpred1.name = 'H'
+# # change h_dfhpred1 series name to 'H'
+# h_dfhpred1.name = 'H'
 
-Create a boolean mask indicating where the values are different
-mask = h_dfhpred1 != h_dfhz1
+# Create a boolean mask indicating where the values are different
+# mask = h_dfhpred1 != h_dfhz1
 
-# Use the mask to select the differing entries
-differences = h_dfhpred1[mask]
+# # Use the mask to select the differing entries
+# differences = h_dfhpred1[mask]
 
-print("Entries that are different between the two Pandas Series:")
-print(differences)
+# print("Entries that are different between the two Pandas Series:")
+# print(differences)
 
 ##########
 ### Standardize features
@@ -1181,83 +1181,84 @@ plt.savefig(os.path.join(result_dir, 'CM', 'RocOVO.png'), bbox_inches='tight')
 plt.savefig(os.path.join(result_dir, 'CM', 'RocOVO.svg'), bbox_inches='tight')
 plt.show()
 
-# create a dataframe with the predicted and manual h scores
-dfOut_skf_all.head()
+# # create a dataframe with the predicted and manual h scores
+# dfOut_skf_all.head()
 
-# add 1 to the predicted_h_score and manual_h_score to have the classes starting from 1, convert to int before
-dfOut_skf_all['predicted_h_score'] = dfOut_skf_all['predicted_h_score'].astype(int) + 1
-dfOut_skf_all['manual_h_score'] = dfOut_skf_all['manual_h_score'].astype(int) + 1
+# # add 1 to the predicted_h_score and manual_h_score to have the classes starting from 1, convert to int before
+# dfOut_skf_all['predicted_h_score'] = dfOut_skf_all['predicted_h_score'].astype(int) + 1
+# dfOut_skf_all['manual_h_score'] = dfOut_skf_all['manual_h_score'].astype(int) + 1
 
-# put column EI of df_H_Z_1 in dfOut_skf_all following the index
-dfOut_skf_all['EI'] = df_H_Z_1['EI']
+# # put column EI of df_H_Z_1 in dfOut_skf_all following the index
+# dfOut_skf_all['EI'] = df_H_Z_1['EI']
 
-# create column Muscle in dfOut_skf_all using the second item in the index
-dfOut_skf_all['Muscle'] = dfOut_skf_all.index.get_level_values(1)
-# convert the values of Muscle to muscle names using code_to_class_original
-dfOut_skf_all['Muscle'] = dfOut_skf_all['Muscle'].map(code_to_class_original)
+# # create column Muscle in dfOut_skf_all using the second item in the index
+# dfOut_skf_all['Muscle'] = dfOut_skf_all.index.get_level_values(1)
+# # convert the values of Muscle to muscle names using code_to_class_original
+# dfOut_skf_all['Muscle'] = dfOut_skf_all['Muscle'].map(code_to_class_original)
 
 ##############
 ######### BOXPLOTS HECKMATT AND ZSCORE
 ##############
 
-# Setting the style and context for the plot
-sns.set_style("whitegrid")
-sns.set_context("talk")
+# # Setting the style and context for the plot
+# sns.set_style("whitegrid")
+# sns.set_context("talk")
 
-# Initialize the matplotlib figure
-plt.figure(figsize=(14, 8))
+# # Initialize the matplotlib figure
+# plt.figure(figsize=(14, 8))
 
-# Create the boxplot, adjust dodge parameter if needed
-boxplot = sns.boxplot(x='Muscle', y='EI', hue='manual_h_score', data=dfOut_skf_all, palette='Greys', dodge=True)
+# # Create the boxplot, adjust dodge parameter if needed
+# boxplot = sns.boxplot(x='Muscle', y='EI', hue='manual_h_score', data=dfOut_skf_all, palette='Greys', dodge=True)
 
-# Final touches on the plot
-plt.title('Relationship between EI and H grouped by Muscle')
-plt.ylabel('EI Value')
-plt.xlabel('Muscle')
-plt.xticks(rotation=45, ha='right')  # Rotate x-axis labels by 45 degrees and align them to the right
-plt.legend(title='H category', bbox_to_anchor=(1.05, 1), loc='upper left')
+# # Final touches on the plot
+# plt.title('Relationship between EI and H grouped by Muscle')
+# plt.ylabel('EI Value')
+# plt.xlabel('Muscle')
+# plt.xticks(rotation=45, ha='right')  # Rotate x-axis labels by 45 degrees and align them to the right
+# plt.legend(title='H category', bbox_to_anchor=(1.05, 1), loc='upper left')
 
-# Show plot
-plt.ylim(-7, 13)
-plt.tight_layout()
-# save the plot
-plt.savefig(os.path.join(result_dir, 'HECKMATT', 'BoxplotEIvsH.png'), bbox_inches='tight')
-plt.savefig(os.path.join(result_dir, 'HECKMATT', 'BoxplotEIvsH.svg'), bbox_inches='tight')
-plt.show()
+# # Show plot
+# plt.ylim(-7, 13)
+# plt.tight_layout()
+# # save the plot
+# plt.savefig(os.path.join(result_dir, 'HECKMATT', 'BoxplotEIvsH.png'), bbox_inches='tight')
+# plt.savefig(os.path.join(result_dir, 'HECKMATT', 'BoxplotEIvsH.svg'), bbox_inches='tight')
+# plt.show()
 
-# Initialize the matplotlib figure
-plt.figure(figsize=(14, 8))
+# # Initialize the matplotlib figure
+# plt.figure(figsize=(14, 8))
 
-# Create the boxplot, adjust dodge parameter if needed
-boxplot = sns.boxplot(x='Muscle', y='EI', hue='predicted_h_score', data=dfOut_skf_all, palette='Greys', dodge=True)
+# # Create the boxplot, adjust dodge parameter if needed
+# boxplot = sns.boxplot(x='Muscle', y='EI', hue='predicted_h_score', data=dfOut_skf_all, palette='Greys', dodge=True)
 
-# Final touches on the plot
-plt.title('Relationship between EI and H grouped by Muscle')
-plt.ylabel('EI Value')
-plt.xlabel('Muscle')
-plt.legend(title='H category', bbox_to_anchor=(1.05, 1), loc='upper left')
+# # Final touches on the plot
+# plt.title('Relationship between EI and H grouped by Muscle')
+# plt.ylabel('EI Value')
+# plt.xlabel('Muscle')
+# plt.legend(title='H category', bbox_to_anchor=(1.05, 1), loc='upper left')
 
-# Show plot
-plt.ylim(-7, 13)
-plt.tight_layout()
-# save the plot
-plt.savefig(os.path.join(result_dir, 'HECKMATT', 'BoxplotEIvsH_predicted.png'), bbox_inches='tight')
-plt.savefig(os.path.join(result_dir, 'HECKMATT', 'BoxplotEIvsH_predicted.svg'), bbox_inches='tight')
-plt.show()
+# # Show plot
+# plt.ylim(-7, 13)
+# plt.tight_layout()
+# # save the plot
+# plt.savefig(os.path.join(result_dir, 'HECKMATT', 'BoxplotEIvsH_predicted.png'), bbox_inches='tight')
+# plt.savefig(os.path.join(result_dir, 'HECKMATT', 'BoxplotEIvsH_predicted.svg'), bbox_inches='tight')
+# plt.show()
 
-# calculate Spearman rank correlation between 'EI' and 'H' for each muscle  
-correlations_manual = dfOut_skf_all.groupby('Muscle').apply(lambda x: x[['EI', 'manual_h_score']].corr(method='spearman').iloc[0, 1])
-print('Spearman rank correlation between EI and manual H for each muscle')
-print(correlations_manual)
+# # calculate Spearman rank correlation between 'EI' and 'H' for each muscle  
+# correlations_manual = dfOut_skf_all.groupby('Muscle').apply(lambda x: x[['EI', 'manual_h_score']].corr(method='spearman').iloc[0, 1])
+# print('Spearman rank correlation between EI and manual H for each muscle')
+# print(correlations_manual)
 
-# calculate Spearman rank correlation between 'EI' and 'H' for each muscle  
-correlations = dfOut_skf_all.groupby('Muscle').apply(lambda x: x[['EI', 'predicted_h_score']].corr(method='spearman').iloc[0, 1])
-print('Spearman rank correlation between EI and predicted H for each muscle')
-print(correlations)
+# # calculate Spearman rank correlation between 'EI' and 'H' for each muscle  
+# correlations = dfOut_skf_all.groupby('Muscle').apply(lambda x: x[['EI', 'predicted_h_score']].corr(method='spearman').iloc[0, 1])
+# print('Spearman rank correlation between EI and predicted H for each muscle')
+# print(correlations)
 
-# make a dataframe with the correlation values both manual and predicted for each muscle
-correlations_df = pd.DataFrame({'Manual H': correlations_manual, 'Predicted H': correlations})
-correlations_df = correlations_df.reset_index()
+# # make a dataframe with the correlation values both manual and predicted for each muscle
+# correlations_df = pd.DataFrame({'Manual H': correlations_manual, 'Predicted H': correlations})
+# correlations_df = correlations_df.reset_index()
 
-# save the dataframe to a csv file
-correlations_df.to_csv(os.path.join(excel_dir, 'CorrelationEIvsH.csv'), index=False)
+# # save the dataframe to a csv file
+# correlations_df.to_csv(os.path.join(excel_dir, 'CorrelationEIvsH.csv'), index=False)
+
