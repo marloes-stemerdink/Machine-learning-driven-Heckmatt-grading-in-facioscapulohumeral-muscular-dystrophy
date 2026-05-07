@@ -45,6 +45,7 @@ from shap import Explanation
 # Importing shap library
 import shap
 
+USE_EI = False # set tu True when merged_df_out.csv is available
 
 def generate_shap_plots_for_class(dfOut_skf, X_test, dataDir, result_dir, explainer, feature_names, observations, ii, class_num,seed=123456, link_f='logit'):
    
@@ -474,53 +475,55 @@ df_hPred_group["manual_h_score"] = df_hPred_group["manual_h_score"].replace(4,3)
 df_hPred_group["features_img_pred"] = data_dict
 df_hPred_group["features_img_pred_not"] = data_dict_not
 
-# TODO commented out everything from here
-# load merged_df_out.csv
-df_H_Z = pd.read_csv(os.path.join(dataDir, 'DATA', 'TABULAR', 'merged_df_out.csv'))
+# load merged_df_out.csv only if it exists
+if USE_EI:
+    df_H_Z = pd.read_csv(os.path.join(dataDir, 'DATA', 'TABULAR', 'merged_df_out.csv'))
 
-# change values of 'Muscle' column in df_H_Z using class_to_code_HZ
-df_H_Z['Muscle'] = df_H_Z['Muscle'].map(class_to_code_HZ)
+    # change values of 'Muscle' column in df_H_Z using class_to_code_HZ
+    df_H_Z['Muscle'] = df_H_Z['Muscle'].map(class_to_code_HZ)
 
-# change values of 'Side' column in df_H_Z using side_to_code
-df_H_Z['Side'] = df_H_Z['Side'].map(side_to_code)
+    # change values of 'Side' column in df_H_Z using side_to_code
+    df_H_Z['Side'] = df_H_Z['Side'].map(side_to_code)
 
-# find code-muscle-side combinations that are in df_H_Z but not in df_hPred_group
-df_H_Z['muscle_side'] = df_H_Z['Muscle'] + '_' + df_H_Z['Side']
-df_H_Z = df_H_Z.dropna(axis=0)
+    # find code-muscle-side combinations that are in df_H_Z but not in df_hPred_group
+    df_H_Z['muscle_side'] = df_H_Z['Muscle'] + '_' + df_H_Z['Side']
+    df_H_Z = df_H_Z.dropna(axis=0)
 
-# rename 'Code' column to 'subject'
-df_H_Z.rename(columns={'Code': 'subject'}, inplace=True)
-# rename 'Muscle' column to 'muscle'
-df_H_Z.rename(columns={'Muscle': 'muscle'}, inplace=True)
-# rename 'Side' column to 'side'
-df_H_Z.rename(columns={'Side': 'side'}, inplace=True)
+    # rename 'Code' column to 'subject'
+    df_H_Z.rename(columns={'Code': 'subject'}, inplace=True)
+    # rename 'Muscle' column to 'muscle'
+    df_H_Z.rename(columns={'Muscle': 'muscle'}, inplace=True)
+    # rename 'Side' column to 'side'
+    df_H_Z.rename(columns={'Side': 'side'}, inplace=True)
 
-# Create a multi-index based on the three columns in both dataframes
-index_cols = ['subject', 'muscle', 'side']
-df_hPred_group = df_hPred_group.set_index(index_cols)
-df_B_indexed = df_H_Z.set_index(index_cols)
+    # Create a multi-index based on the three columns in both dataframes
+    index_cols = ['subject', 'muscle', 'side']
+    df_hPred_group = df_hPred_group.set_index(index_cols)
+    df_B_indexed = df_H_Z.set_index(index_cols)
 
-# Find entries in B that are not in A
-entries_not_in_A = df_B_indexed[~df_B_indexed.index.isin(df_hPred_group.index)]
+    # Find entries in B that are not in A
+    entries_not_in_A = df_B_indexed[~df_B_indexed.index.isin(df_hPred_group.index)]
 
-# remove entries_not_in_A from df_H_Z
-df_H_Z_1 = df_B_indexed[~df_B_indexed.index.isin(entries_not_in_A.index)]
+    # remove entries_not_in_A from df_H_Z
+    df_H_Z_1 = df_B_indexed[~df_B_indexed.index.isin(entries_not_in_A.index)]
 
-# on df_hPred_group, set the index to be the same as df_H_Z_1 and keep only manual_h_score
-h_dfhpred1 = df_hPred_group.loc[df_H_Z_1.index, 'manual_h_score']
-h_dfhz1 = df_H_Z_1['H']
+    # on df_hPred_group, set the index to be the same as df_H_Z_1 and keep only manual_h_score
+    h_dfhpred1 = df_hPred_group.loc[df_H_Z_1.index, 'manual_h_score']
+    h_dfhz1 = df_H_Z_1['H']
 
-# change h_dfhpred1 series name to 'H'
-h_dfhpred1.name = 'H'
+    # change h_dfhpred1 series name to 'H'
+    h_dfhpred1.name = 'H'
 
-# Create a boolean mask indicating where the values are different
-mask = h_dfhpred1 != h_dfhz1
+    # Create a boolean mask indicating where the values are different
+    mask = h_dfhpred1 != h_dfhz1
 
-# Use the mask to select the differing entries
-differences = h_dfhpred1[mask]
+    # Use the mask to select the differing entries
+    differences = h_dfhpred1[mask]
 
-print("Entries that are different between the two Pandas Series:")
-print(differences)
+    print("Entries that are different between the two Pandas Series:")
+    print(differences)
+else:
+    df_H_Z_1 = None
 
 ##########
 ### Standardize features
@@ -1188,13 +1191,20 @@ dfOut_skf_all.head()
 dfOut_skf_all['predicted_h_score'] = dfOut_skf_all['predicted_h_score'].astype(int) + 1
 dfOut_skf_all['manual_h_score'] = dfOut_skf_all['manual_h_score'].astype(int) + 1
 
-# put column EI of df_H_Z_1 in dfOut_skf_all following the index
-dfOut_skf_all['EI'] = df_H_Z_1['EI']
+# Save predicted vs. manual Heckmatt
+dfOut_skf_all.to_csv(os.path.join(excel_dir, 'predicted_vs_manual_Heckmatt.csv'))
 
-# create column Muscle in dfOut_skf_all using the second item in the index
-dfOut_skf_all['Muscle'] = dfOut_skf_all.index.get_level_values(1)
-# convert the values of Muscle to muscle names using code_to_class_original
-dfOut_skf_all['Muscle'] = dfOut_skf_all['Muscle'].map(code_to_class_original)
+# put column EI of df_H_Z_1 in dfOut_skf_all following the index
+if USE_EI and df_H_Z_1 is not None:
+    dfOut_skf_all['EI'] = df_H_Z_1['EI']
+
+    # create column Muscle in dfOut_skf_all using the second item in the index
+    dfOut_skf_all['Muscle'] = dfOut_skf_all.index.get_level_values(1)
+    # convert the values of Muscle to muscle names using code_to_class_original
+    dfOut_skf_all['Muscle'] = dfOut_skf_all['Muscle'].map(code_to_class_original)
+else:
+    print("EI analysis skipped (USE_EI = False)")
+
 
 ##############
 ######### BOXPLOTS HECKMATT AND ZSCORE
