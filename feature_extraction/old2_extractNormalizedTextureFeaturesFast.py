@@ -13,19 +13,17 @@ import pandas as pd
 import cv2
 from scipy.ndimage import label
 from scipy.spatial import ConvexHull
-import SimpleITK as sitk
+import SimpleITK as sitk  # Import SimpleITK for in-memory image handling
 
 import multiprocessing
 from functools import partial
-
-# TODO add manual_h_score
 
 def retain_largest_object(mask):
     labeled, num = label(mask)
     sizes = np.bincount(labeled.ravel())
 
-    if len(sizes) > 1:
-        max_label = np.argmax(sizes[1:]) + 1
+    if len(sizes) > 1:  # Ensure there are labels other than the background
+        max_label = np.argmax(sizes[1:]) + 1  # Ignore background label
         mask = (labeled == max_label)
 
     return mask
@@ -52,7 +50,7 @@ def postProcessNetworkOutput(pred, class_labels, classes, muscle):
 
     if num_features > 1:
         sizes = np.bincount(labeled_array.ravel())
-        sizes[0] = 0
+        sizes[0] = 0  # Background size
         max_label = np.argmax(sizes)
 
         biggest_object = (labeled_array == max_label)
@@ -148,7 +146,7 @@ def process_file(file, fold, pred_fold, img_fold, muscle, classes, class_labels)
     from PIL import Image
 
     # ------------------------------------------------------------------ #
-    # Skip thickness ("t") images — only axial slices 1, 2, 3 are used  #
+    # Skip thickness ("t") images — only echogenicity images 1, 2, 3 are used  #
     # ------------------------------------------------------------------ #
     slice_id = file.replace('.png', '').split('_')[3] if len(file.replace('.png', '').split('_')) >= 4 else ''
     if slice_id.lower() == 't':
@@ -156,18 +154,21 @@ def process_file(file, fold, pred_fold, img_fold, muscle, classes, class_labels)
 
     temp = dict()
     temp['Fold'] = fold
-    temp['Muscle'] = muscle
+    temp['Muscle'] = muscle  # Add current muscle to the summary
 
+    # Load image and prediction only
     img_PIL = Image.open(os.path.join(img_fold, file))
     pred_PIL = Image.open(os.path.join(pred_fold, file))
 
     img = np.array(img_PIL)
 
+    # if img has 3 channels, keep only the first channel
     if len(img.shape) == 3:
         img = img[..., 0]
 
     pred = np.array(pred_PIL)
 
+    # Ensure all arrays have the same shape
     if img.shape != pred.shape:
         min_height = min(img.shape[0], pred.shape[0])
         min_width = min(img.shape[1], pred.shape[1])
@@ -177,21 +178,25 @@ def process_file(file, fold, pred_fold, img_fold, muscle, classes, class_labels)
     # Pass muscle so class_pred is set correctly inside the function
     pred_out, class_pred = postProcessNetworkOutput(pred, class_labels, classes, muscle)
 
+    # Check number of labels in pred_out
     unique_labels_pred, counts_pred = np.unique(pred_out, return_counts=True)
 
+        # Initialize SimpleITK images
     if len(img.shape) == 3:
         img = img[:, :, 0]
     sitk_image = sitk.GetImageFromArray(img)
     sitk_image = sitk.Cast(sitk_image, sitk.sitkFloat32)
 
+    # Set consistent spacing, origin, and direction
     spacing = [1.0, 1.0]
     origin = [0.0, 0.0]
-    direction = [1.0, 0.0, 0.0, 1.0]
+    direction = [1.0, 0.0, 0.0, 1.0]  # 2D identity matrix flattened
 
     sitk_image.SetSpacing(spacing)
     sitk_image.SetOrigin(origin)
     sitk_image.SetDirection(direction)
 
+    # Create feature extractor inside the function to avoid pickling issues
     extractor = featureextractor.RadiomicsFeatureExtractor()
     extractor.disableAllImageTypes()
     extractor.enableImageTypeByName('Original')
@@ -204,20 +209,22 @@ def process_file(file, fold, pred_fold, img_fold, muscle, classes, class_labels)
     extractor.enableFeatureClassByName('ngtdm')
     extractor.settings['additionalInfo'] = False
 
+    # For each label in the prediction
     results = []
     for i in unique_labels_pred:
         if i == 0:
-            continue
+            continue  # skip background
 
+                # Store values
         temp_copy = temp.copy()
         temp_copy['File'] = file
         temp_copy['slice'] = slice_id          # stored explicitly for easy filtering later
         temp_copy['subject'] = file.split('_')[0]
-        temp_copy['muscle'] = file.split('_')[1]   # renamed from muscle_code to match classification script
+        temp_copy['muscle_code'] = file.split('_')[1]
         temp_copy['side'] = file.split('_')[2]
-        temp_copy['class_gt'] = class_pred         # renamed to class_gt to match classification script
         temp_copy['class_pred'] = class_pred       # kept for reference
 
+                # Prepare predicted mask
         pred_out_copy = pred_out.copy()
         pred_out_copy[pred_out_copy != i] = 0
         pred_bw = pred_out_copy > 0
@@ -228,15 +235,18 @@ def process_file(file, fold, pred_fold, img_fold, muscle, classes, class_labels)
         sitk_pred_mask.SetOrigin(origin)
         sitk_pred_mask.SetDirection(direction)
 
+        # Features inside predicted mask
         try:
             features = extractor.execute(sitk_image, sitk_pred_mask, label=255)
-            temp_copy['features_img_gt'] = {str(key): str(value) for key, value in features.items()}
+            temp_copy['features_img_pred'] = {str(key): str(value) for key, value in features.items()}
         except Exception as e:
-            temp_copy['features_img_gt'] = 'mask not found'
+            temp_copy['features_img_pred'] = 'mask not found'
 
+        # Features outside predicted mask (negativeregion)
         try:
             kernel_size = 20
             kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size))
+            # Prepare negative predicted mask
             dilated_mask_pred = cv2.dilate(pred.astype(np.uint8), kernel, iterations=1)
             neg_seg_map_pred = np.logical_not(dilated_mask_pred).astype(np.uint8) * 255
 
@@ -265,27 +275,26 @@ def process_file(file, fold, pred_fold, img_fold, muscle, classes, class_labels)
             sitk_neg_pred_mask.SetDirection(direction)
 
             features = extractor.execute(sitk_image, sitk_neg_pred_mask, label=255)
-            temp_copy['features_img_gt_not'] = {str(key): str(value) for key, value in features.items()}
+            temp_copy['features_img_pred_not'] = {str(key): str(value) for key, value in features.items()}
         except Exception:
-            temp_copy['features_img_gt_not'] = 'mask not found'
+            temp_copy['features_img_pred_not'] = 'mask not found'
 
         results.append(temp_copy)
     return results
 
 
-# ------------------------------------------------------------------ #
-# Setup                                                               #
-# ------------------------------------------------------------------ #
-
+# Prepare parameters for feature extraction
 logger = logging.getLogger("radiomics")
 logger.setLevel(logging.ERROR)
 
+# Define base preds_dirs with a placeholder for muscle name
 base_preds_dir_template = "/mnt/data/Visit1_segmentation/musclespecific/{muscle}/pred"
 image_dir = "/mnt/data/Visit1_PNG/"
 
 net = 'knet_swin_mod'
 experiment = 'muscle_specific'
 
+# Define class and palette for better visualization
 classes = [
     'background',
     'Biceps_brachii',
@@ -306,7 +315,9 @@ classes = [
     'Zygomaticus'
 ]
 
+# Exclude 'background' from the list
 muscle_names = classes[1:]
+# Convert the list into a single string, separated by comma and space
 muscle_names_str = ', '.join(muscle_names)
 print("Muscles to be processed:", muscle_names_str)
 
@@ -320,12 +331,15 @@ color_names = [
 
 cmap_muscle = mcolors.ListedColormap(color_names)
 
+# Initialize summary list to collect results from all muscles
 summary = []
 
+# Loop over each muscle
 for muscle in muscle_names:
 
     print(f"\nProcessing muscle: {muscle}\n")
 
+    # Update preds_dirs for the current muscle by formatting the template paths
     pred_fold = base_preds_dir_template.format(muscle=muscle)
 
     if not os.path.exists(pred_fold):
@@ -337,8 +351,9 @@ for muscle in muscle_names:
     # Log how many t-files will be skipped
     t_files = [f for f in filenames if len(f.replace('.png','').split('_')) >= 4
                and f.replace('.png','').split('_')[3].lower() == 't']
-    print(f"  Skipping {len(t_files)} transverse (t) files out of {len(filenames)} total.")
+    print(f"  Skipping {len(t_files)} thickness (t) files out of {len(filenames)} total.")
 
+    # Prepare the partial function with fixed arguments
     partial_process_file = partial(
         process_file,
         fold=0,
@@ -349,9 +364,11 @@ for muscle in muscle_names:
         class_labels=class_labels
     )
 
+    # Use multiprocessing Pool
     with multiprocessing.Pool() as pool:
         results = list(tqdm(pool.imap(partial_process_file, filenames), total=len(filenames), desc=f"Processing {muscle}"))
 
+    # Flatten the list of lists
     for res in results:
         summary.extend(res)
 
@@ -361,10 +378,12 @@ for muscle in muscle_names:
 
 df = pd.DataFrame().from_dict(summary)
 
-output_excel_path = f'/home/marloes.stemerdink@mydre.org/Documents/analysis/feature_extraction_output/segmentation_summary_{net}_{experiment}.xlsx'
+# Save the DataFrame to a single Excel file
+output_excel_path = f'/home/marloes.stemerdink@mydre.org/Documents/analysis/results/feature_extraction_output/segmentation_summary_{net}_{experiment}.xlsx'
 df.to_excel(output_excel_path, index=False)
 print(f"\nSummary Excel file saved to: {output_excel_path}")
 
-output_json_path = f'/home/marloes.stemerdink@mydre.org/Documents/analysis/feature_extraction_output/segmentation_summary_{net}_{experiment}.json'
+# Optionally, save the DataFrame to a JSON file as well
+output_json_path = f'/home/marloes.stemerdink@mydre.org/Documents/analysis/results/feature_extraction_output/segmentation_summary_{net}_{experiment}.json'
 df.to_json(output_json_path, indent=4)
 print(f"Summary JSON file saved to: {output_json_path}")
