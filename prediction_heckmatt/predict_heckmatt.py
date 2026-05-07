@@ -34,6 +34,7 @@ import json
 import pickle
 import gc
 
+import joblib
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
@@ -42,13 +43,13 @@ from sklearn.compose import ColumnTransformer
 # ─────────────────────────────────────────────
 # CONFIGURE PATHS HERE
 # ─────────────────────────────────────────────
-DATA_DIR        = '/path/to/your/data'          # <-- change this
-MODELS_DIR      = '/path/to/XGBoost_fitted_models'  # <-- change this
-OUTPUT_DIR      = '/path/to/output'             # <-- change this
+DATA_DIR        = '/home/marloes.stemerdink@mydre.org/Documents/analysis/'          # <-- change this
+MODELS_DIR      = os.path.join(DATA_DIR, 'Machine-learning-driven-Heckmatt-grading-in-facioscapulohumeral-muscular-dystrophy', 'XGboost_fitted_models')  # <-- change this
+OUTPUT_DIR      =  os.path.join(DATA_DIR, 'results', 'Heckmatt')            # <-- change this
 
-JSON_FILE       = os.path.join(DATA_DIR, 'segmentation_summary_knet_swin_mod_pred.json')
-EXCEL_FILE      = os.path.join(DATA_DIR, 'heckMapPlusCharacteristics.xlsx')
-OUTPUT_CSV      = os.path.join(OUTPUT_DIR, 'predictions.csv')
+JSON_FILE       = os.path.join(DATA_DIR, 'results', 'feature_extraction_output', 'segmentation_summary_knet_swin_mod_muscle_specific.json')
+EXCEL_FILE      = os.path.join(DATA_DIR, 'data', 'dummy_heckMapPlusCharacteristics.xlsx')
+OUTPUT_CSV      = os.path.join(OUTPUT_DIR, 'results', 'Heckmatt', 'predictions.csv')
 
 # ─────────────────────────────────────────────
 # LOOKUP TABLES  (identical to original script)
@@ -77,18 +78,18 @@ code_to_class_original = {
 # ─────────────────────────────────────────────
 
 def mean_features_with_less_variation(group):
-    feature_columns = group["features_img_gt"].iloc[0].keys()
+    feature_columns = group["features_img_pred"].iloc[0].keys()
     mean_features = {}
     for feature in feature_columns:
-        values = [float(entry[feature]) for entry in group["features_img_gt"]]
+        values = [float(entry[feature]) for entry in group["features_img_pred"]]
         mean_features[feature] = sum(values) / len(values)
     return pd.Series(mean_features)
 
 def mean_features_with_less_variation_nan(group):
-    feature_columns = group["features_img_gt"].iloc[0].keys()
+    feature_columns = group["features_img_pred"].iloc[0].keys()
     mean_features = {}
     for feature in feature_columns:
-        values = [float(entry[feature]) for entry in group["features_img_gt"]]
+        values = [float(entry[feature]) for entry in group["features_img_pred"]]
         variation = max(values) - min(values)
         if variation / abs(np.mean(values) + 1e-10) < 0.5:
             mean_features[feature] = sum(values) / len(values)
@@ -97,18 +98,18 @@ def mean_features_with_less_variation_nan(group):
     return pd.Series(mean_features)
 
 def mean_features_with_less_variation_not(group):
-    feature_columns = group["features_img_gt_not"].iloc[0].keys()
+    feature_columns = group["features_img_pred_not"].iloc[0].keys()
     mean_features = {}
     for feature in feature_columns:
-        values = [float(entry[feature]) for entry in group["features_img_gt_not"]]
+        values = [float(entry[feature]) for entry in group["features_img_pred_not"]]
         mean_features[feature] = sum(values) / len(values)
     return pd.Series(mean_features)
 
 def mean_features_with_less_variation_nan_not(group):
-    feature_columns = group["features_img_gt_not"].iloc[0].keys()
+    feature_columns = group["features_img_pred_not"].iloc[0].keys()
     mean_features = {}
     for feature in feature_columns:
-        values = [float(entry[feature]) for entry in group["features_img_gt_not"]]
+        values = [float(entry[feature]) for entry in group["features_img_pred_not"]]
         variation = max(values) - min(values)
         if variation / abs(np.mean(values) + 1e-10) < 0.5:
             mean_features[feature] = sum(values) / len(values)
@@ -135,15 +136,15 @@ HeckMap['Code']     = HeckMap['Code'].apply(
     lambda x: str(int(float(x))).zfill(5) if pd.notnull(x) and x != '' else '')
 HeckMap['Code']     = HeckMap['Code'].astype(str)
 HeckMap['Sex']      = HeckMap['Sex'].astype(str)
-HeckMap['FSHD_age'] = HeckMap['FSHD_age'].astype(str)
-HeckMap['FSHD_BMI'] = HeckMap['FSHD_BMI'].astype(str)
+HeckMap['Age'] = HeckMap['Age'].astype(str)
+HeckMap['BMI'] = HeckMap['BMI'].astype(str)
 
-df['muscle_code'] = df['class_gt'].map(class_to_code)
+df['muscle_code'] = df['class_pred'].map(class_to_code)
 
-df1 = pd.merge(df, HeckMap[['Code', 'Sex', 'FSHD_age', 'FSHD_BMI']],
+df1 = pd.merge(df, HeckMap[['Code', 'Sex', 'Age', 'BMI']],
                left_on='subject', right_on='Code', how='left')
 df1 = df1.drop('Code', axis=1)
-df1.rename(columns={'Sex': 'sex', 'FSHD_age': 'age', 'FSHD_BMI': 'bmi'}, inplace=True)
+df1.rename(columns={'Sex': 'sex', 'Age': 'age', 'BMI': 'bmi'}, inplace=True)
 
 df1['muscle_code'] = df1['muscle_code'].astype(str)
 df1['side']        = df1['side'].astype(str)
@@ -172,10 +173,12 @@ df_hPred = df_hPred.dropna(axis=0)
 df_hPred['subject'] = pd.to_numeric(df_hPred['subject'], errors='coerce')
 df_hPred['age']     = pd.to_numeric(df_hPred['age'],     errors='coerce')
 df_hPred['bmi']     = pd.to_numeric(df_hPred['bmi'],     errors='coerce')
+
+df_hPred = df_hPred.rename(columns={'muscle_code': 'muscle'})
 df_hPred['muscleN'] = pd.to_numeric(df_hPred['muscle'],  errors='coerce')
 
 df_gt = df_hPred[['subject', 'muscle', 'side', 'age', 'bmi', 'sex',
-                   'muscleN', 'features_img_gt', 'features_img_gt_not', 'manual_h_score']]
+                   'muscleN', 'features_img_pred', 'features_img_pred_not', 'manual_h_score']]
 
 grouped_df     = df_gt.groupby(['subject', 'muscle', 'side']).apply(mean_features_with_less_variation).reset_index()
 grouped_df_nan = df_gt.groupby(['subject', 'muscle', 'side']).apply(mean_features_with_less_variation_nan).reset_index()
@@ -205,7 +208,7 @@ scaled_df_not = pd.DataFrame(data=data_dict_not, columns=feat_names_not)
 filtered_df     = scaled_df
 filtered_df_not = scaled_df_not.add_suffix('_not')
 
-dfX = df_hPred_group[['subject', 'muscle', 'side', 'manual_h_score']].copy()
+dfX = df_hPred_group[['subject', 'muscle', 'side', 'age', 'sex', 'bmi', 'manual_h_score']].copy()
 dfX = dfX.set_index(['subject', 'muscle', 'side'])
 dfX["manual_h_score"] = dfX["manual_h_score"].astype("category")
 
@@ -227,8 +230,8 @@ print("\nLoading pre-trained fold models and predicting …")
 n_classes  = 3
 prob_accum = np.zeros((X.shape[0], n_classes))   # accumulate probabilities across folds
 
-for fold_idx in range(10):
-    model_path = os.path.join(MODELS_DIR, f'fold_{fold_idx}.pkl')
+for fold_idx in range(1,10):
+    model_path = os.path.join(MODELS_DIR, f'best_model_fold{fold_idx}.pkl')
 
     if not os.path.exists(model_path):
         raise FileNotFoundError(
@@ -238,9 +241,13 @@ for fold_idx in range(10):
         )
 
     with open(model_path, 'rb') as f:
-        pipeline = pickle.load(f)
+        pipeline = joblib.load(f)
+    
+    # Only include expected features from trained model
+    expected_features = pipeline.feature_names_in_
+    X_alined = X.loc[:, expected_features]
 
-    probs       = pipeline.predict_proba(X)   # shape (n_samples, 3)
+    probs       = pipeline.predict_proba(expected_features)   # shape (n_samples, 3)
     prob_accum += probs
     print(f"  Fold {fold_idx} done.")
 
