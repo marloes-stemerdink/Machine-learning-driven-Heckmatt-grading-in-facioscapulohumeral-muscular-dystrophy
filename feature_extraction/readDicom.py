@@ -125,7 +125,7 @@ def convert_dicom_to_png(
 if __name__ == "__main__":
     # # ---- STEP 1: inspect a single DICOM to decide crop values ----
     # # Pick one representative DICOM file:
-    # sample_file = "/home/marloes.stemerdink@mydre.org/Documents/DCM_test/1.2.392.200036.9116.6.22.11522156.9942.20250502070844414.2.73.dcm"
+    # sample_file = "/mnt/data/dataset_training/last_strong_new/png_test/dcm/01004_023_06_6.dcm"
 
     # ds = load_dicom(sample_file)
     # print("Image shape (height, width):", ds.pixel_array.shape)
@@ -145,13 +145,13 @@ if __name__ == "__main__":
     # # Then comment out the block above and uncomment the batch conversion below.
 
     # ---- STEP 2 (after you know the four crop values): batch convert ----
-    input_dir = "/mnt/data/Visit1_cleaned/"
-    output_dir = "/mnt/data/Visit1_PNG/"
+    input_dir = "/mnt/data/dataset_training/test_set/original/images/"
+    output_dir = "/mnt/data/dataset_training/test_set/converted/images/"
     os.makedirs(output_dir, exist_ok=True)
     
     top_crop_px = 148
     bottom_crop_px = 216
-    left_crop_px = 238
+    left_crop_px = 235
     right_crop_px = 244
     
     convert_dicom_to_png(
