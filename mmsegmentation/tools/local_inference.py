@@ -14,6 +14,7 @@ from mmengine import Config
 import argparse
 
 from torchmetrics.classification import MulticlassJaccardIndex
+from torchmetrics.classification import BinaryJaccardIndex
 from skimage import color
 
 import json
@@ -83,12 +84,14 @@ def main():
         
     # search for the string "num_classes=" in the config file and get the number of classes
     # this is a hacky way to get the number of classes
-    num_classes, ignore_index = extract_parameters(args.config)
+    num_classes, _ = extract_parameters(args.config)
+    ignore_index = 255
         
     if args.ground_truth:
-        metric = MulticlassJaccardIndex(num_classes=num_classes,
-                                        ignore_index=ignore_index,
-                                        average='macro')
+        # metric = MulticlassJaccardIndex(num_classes=num_classes,
+                                        # ignore_index=ignore_index,
+                                        # average='macro')
+        metric = BinaryJaccardIndex()
         ious = []
     
     if args.plot_rgb:
@@ -162,7 +165,11 @@ def main():
             #     gt_label = np.pad(gt_label, ((0, 0), (0, pad_cols)), 'constant', constant_values=0)
 
             temp = dict()
-            temp[img_name] = metric(torch.from_numpy(pred_label), torch.from_numpy(gt_label)).numpy()
+            # temp[img_name] = metric(torch.from_numpy(pred_label), torch.from_numpy(gt_label)).numpy()
+            valid_mask = gt_label !=255
+            metric.reset()
+            temp[img_name] = metric(torch.from_numpy(pred_label[valid_mask]).long(), torch.from_numpy(gt_label[valid_mask]).long()).numpy()
+
             ious.append(temp)
 
         if args.plot_rgb:
