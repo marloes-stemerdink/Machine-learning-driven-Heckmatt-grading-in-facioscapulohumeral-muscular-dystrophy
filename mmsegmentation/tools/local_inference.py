@@ -137,9 +137,9 @@ def main():
                 gt_label = np.array(gt_label)
 
             
-            print(f"gt: {gt_label.shape}, pred: {pred_label.shape}")
-            print(f"gt unique values: {np.unique(gt_label)}")
-            print(f"pred unique values: {np.unique(pred_label)}")
+            # print(f"gt: {gt_label.shape}, pred: {pred_label.shape}")
+            # print(f"gt unique values: {np.unique(gt_label)}")
+            # print(f"pred unique values: {np.unique(pred_label)}")
 
             # # if the gt label and the pred label have different shapes, center crop the pred label to match the gt label
             # if gt_label.shape != pred_label.shape:
