@@ -2,6 +2,7 @@ import pydicom
 import matplotlib.pyplot as plt
 import os
 import numpy as np
+from tqdm import tqdm
 
 def load_dicom(file_path):
     """Load DICOM file and return dataset."""
@@ -106,7 +107,8 @@ def convert_dicom_to_png(
     crop from all sides, and save them as PNG images in an output directory.
     """
     for root, dirs, files in os.walk(input_dir):
-        for file in files:
+        for file in tqdm(files, desc = "processing files"):
+        # for file in files:
             if file.endswith(".dcm"):
                 file_path = os.path.join(root, file)
                 dicom_dataset = pydicom.dcmread(file_path)
@@ -145,8 +147,8 @@ if __name__ == "__main__":
     # # Then comment out the block above and uncomment the batch conversion below.
 
     # ---- STEP 2 (after you know the four crop values): batch convert ----
-    input_dir = "/mnt/data/dataset_training/subset_1/healthy/original/images/"
-    output_dir = "/mnt/data/dataset_training/subset_1/healthy/converted_png/images/"
+    input_dir = "/mnt/data/dataset_training/subset_1/last_strong/original/images/"
+    output_dir = "/mnt/data/dataset_training/subset_1/last_strong/converted_png/images/"
     os.makedirs(output_dir, exist_ok=True)
     
     top_crop_px = 148
