@@ -168,6 +168,7 @@ model = dict(
         ],
                 kernel_generate_head=dict(
                     type='UPerHead',
+                    ignore_index=255,
                     in_channels=[192, 384, 768, 1536],
                     in_index=[0, 1, 2, 3],
                     pool_scales=(1, 2, 3, 6),
@@ -181,6 +182,7 @@ model = dict(
                         class_weight=[0.69314718, 2.39377455]))),
     auxiliary_head=dict(
         type='FCNHead',
+        ignore_index=255,
         in_channels=768,
         in_index=2,
         channels=256,
