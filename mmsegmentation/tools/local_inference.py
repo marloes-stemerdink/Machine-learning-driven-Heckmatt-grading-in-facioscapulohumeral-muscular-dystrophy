@@ -84,14 +84,16 @@ def main():
         
     # search for the string "num_classes=" in the config file and get the number of classes
     # this is a hacky way to get the number of classes
-    num_classes, _ = extract_parameters(args.config)
-    ignore_index = 255
+    num_classes, ignore_index = extract_parameters(args.config)
+
+    if ignore_index is None:
+        ignore_index = 255
+        print('Warning: ignore_index was None and thus set to 255')
         
     if args.ground_truth:
-        # metric = MulticlassJaccardIndex(num_classes=num_classes,
-                                        # ignore_index=ignore_index,
-                                        # average='macro')
-        metric = BinaryJaccardIndex()
+        metric = MulticlassJaccardIndex(num_classes=num_classes,
+                                        ignore_index=ignore_index,
+                                        average=None)
         ious = []
     
     if args.plot_rgb:
@@ -164,16 +166,37 @@ def main():
             #     pad_cols = 256 - gt_label.shape[1]
             #     gt_label = np.pad(gt_label, ((0, 0), (0, pad_cols)), 'constant', constant_values=0)
 
-            temp = dict()
+            # temp = dict()
             # temp[img_name] = metric(torch.from_numpy(pred_label), torch.from_numpy(gt_label)).numpy()
-            valid_mask = gt_label !=255
-            metric.reset()
-            temp[img_name] = metric(torch.from_numpy(pred_label[valid_mask]).long(), torch.from_numpy(gt_label[valid_mask]).long()).numpy()
+
+            # valid_mask = gt_label !=255
+            # metric.reset()
+            # temp[img_name] = metric(
+            #     torch.from_numpy(pred_label[valid_mask]).long(), 
+            #     torch.from_numpy(gt_label[valid_mask]).long()
+            #     ).numpy()
+
+            iou_values = metric(
+                torch.from_numpy(pred_label),
+                torch.from_numpy(gt_label)
+            ).numpy()
+
+            print(f'iou values are {iou_values}')
+            print(iou_values.shape)
+
+            temp = {
+                img_name: {
+                    'background_iou': float(iou_values[0]),
+                    'muscle_iou': float(iou_values[1]),
+                    'mean_iou': float(np.mean(iou_values))
+                }
+            }
 
             ious.append(temp)
 
         if args.plot_rgb:
-            cmap = plt.cm.get_cmap('hsv', num_classes)
+            # cmap = plt.cm.get_cmap('hsv', num_classes)
+            cmap = plt.colormaps.get_cmap('hsv').resampled(num_classes)
 
             # Create an array of colors from the color map
             palette = (cmap(np.arange(num_classes))[:, :3] * 255).astype(int)
@@ -234,16 +257,16 @@ def main():
 
     if args.ground_truth:
         # print mean and std of ious
-        ious_values = [item for sublist in ious for item in sublist.values()]
-        print('Mean iou: ', np.mean(ious_values))
-        print('Std iou: ', np.std(ious_values))
+        # ious_values = [item for sublist in ious for item in sublist.values()]
+        # print('Mean iou: ', np.mean(ious_values))
+        # print('Std iou: ', np.std(ious_values))
         
         # convert ndarrays to string
-        ious = [{key: str(value) for key, value in individual_iou.items()} for individual_iou in ious]
+        # ious = [{key: str(value) for key, value in individual_iou.items()} for individual_iou in ious]
 
         # save ious to file json
         with open(os.path.join(out_folder, 'ious.json'), 'w') as f:
-            json.dump(ious, f)
+            json.dump(ious, f, indent=4)
 
 
 if __name__ == '__main__':
