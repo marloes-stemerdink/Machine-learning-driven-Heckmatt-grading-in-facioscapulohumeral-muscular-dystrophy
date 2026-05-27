@@ -512,29 +512,9 @@ logger = logging.getLogger("radiomics")
 logger.setLevel(logging.ERROR)
 
 # Define base preds_dirs with a placeholder for muscle name
-base_preds_dirs_template = [
-    "/home/francesco/Desktop/POLI/RADBOUD/RESULTS/FSHD/FSHD_KNET_SWIN_f0_{muscle}/pred",
-    "/home/francesco/Desktop/POLI/RADBOUD/RESULTS/FSHD/FSHD_KNET_SWIN_f1_{muscle}/pred",
-    "/home/francesco/Desktop/POLI/RADBOUD/RESULTS/FSHD/FSHD_KNET_SWIN_f2_{muscle}/pred",
-    "/home/francesco/Desktop/POLI/RADBOUD/RESULTS/FSHD/FSHD_KNET_SWIN_f3_{muscle}/pred",
-    "/home/francesco/Desktop/POLI/RADBOUD/RESULTS/FSHD/FSHD_KNET_SWIN_f4_{muscle}/pred"
-]
-
-gt_dirs = [
-    "/home/francesco/Desktop/POLI/RADBOUD/DATA/DEVELOPMENT/FSHD_v3_f0/labels/testing",
-    "/home/francesco/Desktop/POLI/RADBOUD/DATA/DEVELOPMENT/FSHD_v3_f1/labels/testing",
-    "/home/francesco/Desktop/POLI/RADBOUD/DATA/DEVELOPMENT/FSHD_v3_f2/labels/testing",
-    "/home/francesco/Desktop/POLI/RADBOUD/DATA/DEVELOPMENT/FSHD_v3_f3/labels/testing",
-    "/home/francesco/Desktop/POLI/RADBOUD/DATA/DEVELOPMENT/FSHD_v3_f4/labels/testing"
-]
-
-image_dirs = [
-    "/home/francesco/Desktop/POLI/RADBOUD/DATA/DEVELOPMENT/FSHD_v3_f0/images/testing",
-    "/home/francesco/Desktop/POLI/RADBOUD/DATA/DEVELOPMENT/FSHD_v3_f1/images/testing",
-    "/home/francesco/Desktop/POLI/RADBOUD/DATA/DEVELOPMENT/FSHD_v3_f2/images/testing",
-    "/home/francesco/Desktop/POLI/RADBOUD/DATA/DEVELOPMENT/FSHD_v3_f3/images/testing",
-    "/home/francesco/Desktop/POLI/RADBOUD/DATA/DEVELOPMENT/FSHD_v3_f4/images/testing"
-]
+base_preds_dirs_template = ["/mnt/data/dataset_training/subset_1/results/healthy/pred/"]
+gt_dirs = ["/mnt/data/dataset_training/subset_1/healthy/converted_png/masks/"]
+image_dirs = ["/mnt/data/dataset_training/subset_1/healthy/converted_png/images/"]
 
 net = 'knet_swin_mod'
 experiment = 'muscle_specific'
@@ -627,11 +607,11 @@ for muscle in muscle_names:
 df = pd.DataFrame().from_dict(summary)
 
 # Save the DataFrame to a single Excel file
-output_excel_path = f'/home/francesco/Desktop/POLI/RADBOUD/RESULTS/EXCEL/segmentation_summary_{net}_{experiment}.xlsx'
+output_excel_path = f'/mnt/data/dataset_training/subset_1/results/healthy/segmentation_summary_{net}_{experiment}.xlsx'
 df.to_excel(output_excel_path, index=False)
 print(f"\nSummary Excel file saved to: {output_excel_path}")
 
 # Optionally, save the DataFrame to a JSON file as well
-output_json_path = f'/home/francesco/Desktop/POLI/RADBOUD/RESULTS/EXCEL/segmentation_summary_{net}_{experiment}.json'
+output_json_path = f'/mnt/data/dataset_training/subset_1/results/healthy/segmentation_summary_{net}_{experiment}.json'
 df.to_json(output_json_path, indent=4)
 print(f"Summary JSON file saved to: {output_json_path}")
