@@ -30,7 +30,7 @@ def retain_largest_object(mask):
     return mask
 
 
-def postProcessNetworkOutput(pred, class_labels, class_gt, label_gt, muscle):
+def postProcessNetworkOutput(pred, class_labels, class_gt, label_gt):
 
     unique_labels, counts = np.unique(pred, return_counts=True)
     labels = unique_labels[unique_labels > 0]
@@ -130,8 +130,7 @@ def postProcessNetworkOutput(pred, class_labels, class_gt, label_gt, muscle):
         pred = np.argmax(oh_pred, axis=-1)
         unique_labels, counts = np.unique(pred, return_counts=True)
         dominant_label = labels[np.argmax(counts)]
-        # class_pred = classes[dominant_label]
-        class_pred = muscle
+        class_pred = classes[dominant_label]
         pred_out = pred
 
         return pred_out, class_pred
@@ -170,15 +169,6 @@ def process_file(file, fold, pred_fold, gt_fold, img_fold, muscle, classes, clas
     temp['Muscle'] = muscle  # Add current muscle to the summary
 
     # Load image, ground truth and prediction
-
-    img_dir = os.path.join(img_fold, file)
-    gt_dir = os.path.join(gt_fold, file)
-    pred_dir = os.path.join(pred_fold, file)
-
-    if not all(os.path.exists(os.path.join(d,file)) for d in [img_dir,gt_dir,pred_dir]):
-        print('Paths do not exist')
-        return []
-
     img_PIL = Image.open(os.path.join(img_fold, file))
     gt_PIL = Image.open(os.path.join(gt_fold, file))
     pred_PIL = Image.open(os.path.join(pred_fold, file))
@@ -211,8 +201,7 @@ def process_file(file, fold, pred_fold, gt_fold, img_fold, muscle, classes, clas
         label_gt = 0
         class_gt = classes[label_gt]
 
-    # Pass muscle so class_pred is set correctly inside the function
-    pred_out, class_pred = postProcessNetworkOutput(pred, class_labels, class_gt, label_gt, muscle)
+    pred_out, class_pred = postProcessNetworkOutput(pred, class_labels, class_gt, label_gt)
 
     # Find index of class_pred in class_labels
     label_pred = np.where(np.array(classes) == class_pred)[0][0]
@@ -523,11 +512,29 @@ logger = logging.getLogger("radiomics")
 logger.setLevel(logging.ERROR)
 
 # Define base preds_dirs with a placeholder for muscle name
-base_preds_dirs_template = ["/mnt/data/dataset_training/subset_1/results/healthy/pred/"]
+base_preds_dirs_template = [
+    "/home/francesco/Desktop/POLI/RADBOUD/RESULTS/FSHD/FSHD_KNET_SWIN_f0_{muscle}/pred",
+    "/home/francesco/Desktop/POLI/RADBOUD/RESULTS/FSHD/FSHD_KNET_SWIN_f1_{muscle}/pred",
+    "/home/francesco/Desktop/POLI/RADBOUD/RESULTS/FSHD/FSHD_KNET_SWIN_f2_{muscle}/pred",
+    "/home/francesco/Desktop/POLI/RADBOUD/RESULTS/FSHD/FSHD_KNET_SWIN_f3_{muscle}/pred",
+    "/home/francesco/Desktop/POLI/RADBOUD/RESULTS/FSHD/FSHD_KNET_SWIN_f4_{muscle}/pred"
+]
 
-gt_dirs = ["/mnt/data/dataset_training/subset_1/healthy/converted_png/masks/"]
+gt_dirs = [
+    "/home/francesco/Desktop/POLI/RADBOUD/DATA/DEVELOPMENT/FSHD_v3_f0/labels/testing",
+    "/home/francesco/Desktop/POLI/RADBOUD/DATA/DEVELOPMENT/FSHD_v3_f1/labels/testing",
+    "/home/francesco/Desktop/POLI/RADBOUD/DATA/DEVELOPMENT/FSHD_v3_f2/labels/testing",
+    "/home/francesco/Desktop/POLI/RADBOUD/DATA/DEVELOPMENT/FSHD_v3_f3/labels/testing",
+    "/home/francesco/Desktop/POLI/RADBOUD/DATA/DEVELOPMENT/FSHD_v3_f4/labels/testing"
+]
 
-image_dirs = ["/mnt/data/dataset_training/subset_1/healthy/converted_png/images/"]
+image_dirs = [
+    "/home/francesco/Desktop/POLI/RADBOUD/DATA/DEVELOPMENT/FSHD_v3_f0/images/testing",
+    "/home/francesco/Desktop/POLI/RADBOUD/DATA/DEVELOPMENT/FSHD_v3_f1/images/testing",
+    "/home/francesco/Desktop/POLI/RADBOUD/DATA/DEVELOPMENT/FSHD_v3_f2/images/testing",
+    "/home/francesco/Desktop/POLI/RADBOUD/DATA/DEVELOPMENT/FSHD_v3_f3/images/testing",
+    "/home/francesco/Desktop/POLI/RADBOUD/DATA/DEVELOPMENT/FSHD_v3_f4/images/testing"
+]
 
 net = 'knet_swin_mod'
 experiment = 'muscle_specific'
@@ -620,11 +627,11 @@ for muscle in muscle_names:
 df = pd.DataFrame().from_dict(summary)
 
 # Save the DataFrame to a single Excel file
-output_excel_path = f'/mnt/data/dataset_training/subset_1/results/healthy/segmentation_summary_{net}_{experiment}.xlsx'
+output_excel_path = f'/home/francesco/Desktop/POLI/RADBOUD/RESULTS/EXCEL/segmentation_summary_{net}_{experiment}.xlsx'
 df.to_excel(output_excel_path, index=False)
 print(f"\nSummary Excel file saved to: {output_excel_path}")
 
 # Optionally, save the DataFrame to a JSON file as well
-output_json_path = f'/mnt/data/dataset_training/subset_1/results/healthy/segmentation_summary_{net}_{experiment}.json'
+output_json_path = f'/home/francesco/Desktop/POLI/RADBOUD/RESULTS/EXCEL/segmentation_summary_{net}_{experiment}.json'
 df.to_json(output_json_path, indent=4)
 print(f"Summary JSON file saved to: {output_json_path}")
