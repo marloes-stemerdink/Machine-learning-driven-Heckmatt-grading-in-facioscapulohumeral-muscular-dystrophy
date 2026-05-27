@@ -18,6 +18,9 @@ import SimpleITK as sitk  # Import SimpleITK for in-memory image handling
 import multiprocessing
 from functools import partial
 
+# Load CSV with muscle codes
+muscle_code_df = pd.read_csv('data/Muscles.csv')
+code_to_muscle = dict(zip(muscle_code_df['Code'].astype(str).str.zfill(3), muscle_code_df['Muscle']))
 
 def retain_largest_object(mask):
     labeled, num = label(mask)
@@ -166,12 +169,26 @@ def process_file(file, fold, pred_fold, gt_fold, img_fold, muscle, classes, clas
     temp = dict()
 
     temp['Fold'] = fold
+    muscle_code = file.split('_')[1]
+    muscle = code_to_muscle.get(muscle_code, f'unknown_{ muscle_code}')
     temp['Muscle'] = muscle  # Add current muscle to the summary
 
+    # print(f'Processing muscle {muscle}')
+
+    # Define image, ground truth and predicted mask path
+    img_path = os.path.join(img_fold,file)
+    gt_path = os.path.join(gt_fold, file)
+    pred_path = os.path.join(pred_fold, file)
+
+    # Break function early if a path doesn't exist
+    if not os.path.exists(img_path) or not os.path.exists(gt_path) or not os.path.exists(pred_path):
+        print(f'Skipping {file}: one or more paths do not exist.')
+        return []
+
     # Load image, ground truth and prediction
-    img_PIL = Image.open(os.path.join(img_fold, file))
-    gt_PIL = Image.open(os.path.join(gt_fold, file))
-    pred_PIL = Image.open(os.path.join(pred_fold, file))
+    img_PIL = Image.open(img_path)
+    gt_PIL = Image.open(gt_path)
+    pred_PIL = Image.open(pred_path)
 
     img = np.array(img_PIL)
     
@@ -512,9 +529,9 @@ logger = logging.getLogger("radiomics")
 logger.setLevel(logging.ERROR)
 
 # Define base preds_dirs with a placeholder for muscle name
-base_preds_dirs_template = ["/mnt/data/dataset_training/subset_1/results/healthy/pred/"]
-gt_dirs = ["/mnt/data/dataset_training/subset_1/healthy/converted_png/masks/"]
-image_dirs = ["/mnt/data/dataset_training/subset_1/healthy/converted_png/images/"]
+preds_dirs = ["/mnt/data/dataset_training/subset_1/results/last_strong/pred/"]
+gt_dirs = ["/mnt/data/dataset_training/subset_1/last_strong/converted_png/masks/"]
+image_dirs = ["/mnt/data/dataset_training/subset_1/last_strong/converted_png/images/"]
 
 net = 'knet_swin_mod'
 experiment = 'muscle_specific'
@@ -564,54 +581,54 @@ summary = []
 # Load missing filenames from txt file missing_filenames.txt
 # missing_filenames = np.loadtxt('/home/francesco/Desktop/POLI/RADBOUD/RESULTS/EXCEL/missing_filenames.txt', dtype=str)
 
-# Loop over each muscle
-for muscle in muscle_names:
+# # Loop over each muscle
+# for muscle in muscle_names:
 
-    print(f"\nProcessing muscle: {muscle}\n")
+#     print(f"\nProcessing muscle: {muscle}\n")
 
-    # Update preds_dirs for the current muscle by formatting the template paths
-    preds_dirs = [path.format(muscle=muscle) for path in base_preds_dirs_template]
+#     # Update preds_dirs for the current muscle by formatting the template paths
+#     preds_dirs = [path.format(muscle=muscle) for path in base_preds_dirs_template]
 
-    fold = 0  # Reset fold counter for each muscle
+fold = 0  # Reset fold counter for each muscle
 
-    # Loop over each fold
-    for pred_fold, gt_fold, img_fold in zip(preds_dirs, gt_dirs, image_dirs):
+# Loop over each fold
+for pred_fold, gt_fold, img_fold in zip(preds_dirs, gt_dirs, image_dirs):
 
-        print(f"Processing fold {fold} for muscle {muscle}\n")
+    # print(f"Processing fold {fold} for muscle {muscle}\n")
 
-        filenames = os.listdir(pred_fold)
+    filenames = os.listdir(pred_fold)
 
-        # Prepare the partial function with fixed arguments
-        partial_process_file = partial(
-            process_file,
-            fold=fold,
-            pred_fold=pred_fold,
-            gt_fold=gt_fold,
-            img_fold=img_fold,
-            muscle=muscle,
-            classes=classes,
-            class_labels=class_labels
-        )
+    # Prepare the partial function with fixed arguments
+    partial_process_file = partial(
+        process_file,
+        fold=fold,
+        pred_fold=pred_fold,
+        gt_fold=gt_fold,
+        img_fold=img_fold,
+        muscle=code_to_muscle,
+        classes=classes,
+        class_labels=class_labels
+    )
 
-        # Use multiprocessing Pool
-        with multiprocessing.Pool() as pool:
-            results = list(tqdm(pool.imap(partial_process_file, filenames), total=len(filenames), desc=f"Processing files in fold {fold}"))
+    # Use multiprocessing Pool
+    with multiprocessing.Pool() as pool:
+        results = list(tqdm(pool.imap(partial_process_file, filenames), total=len(filenames), desc=f"Processing files in fold {fold}"))
 
-        # Flatten the list of lists
-        for res in results:
-            summary.extend(res)
+    # Flatten the list of lists
+    for res in results:
+        summary.extend(res)
 
-        fold += 1
+    fold += 1
 
 # Convert the summary list of dictionaries to a DataFrame
 df = pd.DataFrame().from_dict(summary)
 
 # Save the DataFrame to a single Excel file
-output_excel_path = f'/mnt/data/dataset_training/subset_1/results/healthy/segmentation_summary_{net}_{experiment}.xlsx'
+output_excel_path = f'/mnt/data/dataset_training/subset_1/results/last_strong/segmentation_summary_{net}_{experiment}.xlsx'
 df.to_excel(output_excel_path, index=False)
 print(f"\nSummary Excel file saved to: {output_excel_path}")
 
 # Optionally, save the DataFrame to a JSON file as well
-output_json_path = f'/mnt/data/dataset_training/subset_1/results/healthy/segmentation_summary_{net}_{experiment}.json'
+output_json_path = f'/mnt/data/dataset_training/subset_1/results/last_strong/segmentation_summary_{net}_{experiment}.json'
 df.to_json(output_json_path, indent=4)
 print(f"Summary JSON file saved to: {output_json_path}")
