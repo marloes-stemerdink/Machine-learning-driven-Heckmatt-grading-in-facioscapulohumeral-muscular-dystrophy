@@ -197,6 +197,7 @@ def process_file(file, fold, pred_fold, gt_fold, img_fold, muscle, classes, clas
         img = img[..., 0]
                 
     gt = np.array(gt_PIL)
+    # print(f'{file}: GT unique values: {np.unique(gt)}')
     pred = np.array(pred_PIL)
 
     # Ensure all arrays have the same shape
@@ -265,8 +266,10 @@ def process_file(file, fold, pred_fold, gt_fold, img_fold, muscle, classes, clas
         if len(unique_labels_pred) > 1:
             if i == label_pred and i != 0:
                 # Prepare ground truth mask
-                gt_bw = gt > 0
+                ignore_mask = (gt ==255)    # ignore label
+                gt_bw = (gt > 0) & ~ignore_mask
                 gt_mask = (gt_bw * 255).astype(np.uint8)
+
                 sitk_gt_mask = sitk.GetImageFromArray(gt_mask)
                 sitk_gt_mask.SetSpacing(spacing)
                 sitk_gt_mask.SetOrigin(origin)
@@ -275,8 +278,9 @@ def process_file(file, fold, pred_fold, gt_fold, img_fold, muscle, classes, clas
                 # Prepare predicted mask
                 pred_out_copy = pred_out.copy()
                 pred_out_copy[pred_out_copy != i] = 0
-                pred_bw = pred_out_copy > 0
+                pred_bw = (pred_out_copy > 0) & ~ignore_mask
                 pred_mask = (pred_bw * 255).astype(np.uint8)
+
                 sitk_pred_mask = sitk.GetImageFromArray(pred_mask)
                 sitk_pred_mask.SetSpacing(spacing)
                 sitk_pred_mask.SetOrigin(origin)
@@ -284,7 +288,7 @@ def process_file(file, fold, pred_fold, gt_fold, img_fold, muscle, classes, clas
 
                 # Compute metrics
                 TP = np.sum(np.logical_and(gt_bw, pred_bw))
-                TN = np.sum(np.logical_not(np.logical_or(gt_bw, pred_bw)))
+                TN = np.sum(np.logical_not(np.logical_or(gt_bw, pred_bw, ignore_mask)))
                 FP = np.sum(np.logical_and(np.logical_not(gt_bw), pred_bw))
                 FN = np.sum(np.logical_and(gt_bw, np.logical_not(pred_bw)))
                 iou_score = TP / (TP + FP + FN + np.finfo(float).eps)
@@ -455,7 +459,8 @@ def process_file(file, fold, pred_fold, gt_fold, img_fold, muscle, classes, clas
                 results.append(temp_copy)
         else:
             # Prepare ground truth mask
-            gt_bw = gt > 0
+            ignore_mask = (gt ==255)
+            gt_bw = (gt > 0) & ~ignore_mask
             gt_mask = (gt_bw * 255).astype(np.uint8)
             sitk_gt_mask = sitk.GetImageFromArray(gt_mask)
             sitk_gt_mask.SetSpacing(spacing)
