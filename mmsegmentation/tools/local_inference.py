@@ -181,8 +181,8 @@ def main():
                 torch.from_numpy(gt_label)
             ).numpy()
 
-            print(f'iou values are {iou_values}')
-            print(iou_values.shape)
+            # print(f'iou values are {iou_values}')
+            # print(iou_values.shape)
 
             temp = {
                 img_name: {
