@@ -1,3 +1,9 @@
+################ Marloes test with ground truths ###############################3
+# Healthy subset 1 met ground truths
+python Machine-learning-driven-Heckmatt-grading-in-facioscapulohumeral-muscular-dystrophy/mmsegmentation/tools/local_inference.py /home/marloes.stemerdink@mydre.org/Documents/analysis/Machine-learning-driven-Heckmatt-grading-in-facioscapulohumeral-muscular-dystrophy/mmsegmentation/configs/FSHD_experiments/FSHD_config_SWIN_f0_binary.py --checkpoint /mnt/data/trained_models/FSHD_binary_models/FSHD_binary_models/FSHD_config_SWIN_f0_binary.pth --img_folder /mnt/data/dataset_training/subset_1/healthy/converted_png/images/ --out_results /mnt/data/dataset_training/subset_1/results/healthy/ --ground_truth /mnt/data/dataset_training/subset_1/healthy/converted_png/masks/ --plot_rgb --plot_label_compare
+
+
+
 ################ DP_GAN
 
 python tools/local_inference.py /media/francesco/DEV001/PROJECT-THYROID/RESULTS/mmsegmentation/ThyroidB/Thyroid_B.py --checkpoint /media/francesco/DEV001/PROJECT-THYROID/RESULTS/mmsegmentation/ThyroidB/iter_40000.pth --img_folder /media/francesco/DEV001/PROJECT-KERNEL/DP_GAN/results/dp_gan_thyroid_B_512_v0/0/image --out_results /media/francesco/DEV001/PROJECT-KERNEL/DP_GAN/checkpoints/dp_gan_thyroid_B_512_v0/segmentation/iter_0 --ground_truth /media/francesco/DEV001/PROJECT-KERNEL/DP_GAN/datasets/B_768/validation/seg_maps_512 --plot_rgb --plot_label_compare
