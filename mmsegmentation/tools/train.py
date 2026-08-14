@@ -53,38 +53,6 @@ def parse_args():
 
 def main():
     args = parse_args()
-
-    # classes ThyroidUS
-    # classes = ('internal background',
-    #         'connective tissue',
-    #         'trachea',
-    #         'thyroid gland',
-    #         'blood vessels',
-    #         'dermal',
-    #         'muscle tissue',
-    #         'thyroid nodule',
-    #         'external background')
-
-    # # classes IMT
-    # classes = ('lumen',
-    #         'far wall',
-    #         'near wall',
-    #         'hyper echo',
-    #         'low echo',
-    #         'other',
-    #         'background')
-
-    # classes DTP
-    # classes = ('background',
-    #         'cell')
-
-    # # classes VERSE
-    # classes = ('background',
-    #         'vertebrae')
-    
-    # # classes RETINA
-    # classes = ('background',
-    #         'vessel')
     
     # # classes FSHD
     # classes = ('background',
@@ -108,47 +76,6 @@ def main():
     # classes FSHD
     classes = ('background',
             'muscle')
-    
-    # classes DERMA
-    # classes = ('background',
-    #          'lesion') 
- 
-    # paletteThyroid = [
-    #     (0, 0, 0), # internal background - black
-    #     (0, 255, 0), # connective tissue - green
-    #     (0, 0, 255), # trachea - blue
-    #     (255, 0, 0), # thyroid gland - red
-    #     (255, 255, 0), # blood vessels - yellow
-    #     (255, 0, 255), # dermal - magenta
-    #     (0, 255, 255), # muscle tissue - cyan
-    #     (255, 255, 255), # thyroid nodule - white
-    #     (128, 128, 128) # external background - gray
-    # ]
-
-    # paletteIMT = [
-    #     (0, 0, 0), # lumen - black
-    #     (0, 255, 0), # far wall - green
-    #     (0, 0, 255), # near wall - blue
-    #     (255, 0, 0), # hyper echo - red
-    #     (255, 255, 0), # low echo - yellow
-    #     (255, 0, 255), # other - magenta
-    #     (0, 255, 255), # background - cyan
-    # ]
-
-    # paletteDTP = [
-    #     (0, 0, 0), # background - black
-    #     (255, 255, 255), # cell - white
-    # ]
-
-    # paletteVERSE = [
-    #     (0, 0, 0), # background - black
-    #     (255, 255, 255), # vertebrae - white
-    # ]
-    
-    # paletteRETINA = [
-    #     (0, 0, 0), # background - black
-    #     (255, 255, 255), # vessel - white
-    # ]
 
     # paletteFSHD = [
     #         (0, 0, 0),       # black
@@ -169,61 +96,10 @@ def main():
     #     (255, 215, 0),   # gold
     #     (46, 139, 87)]   # sea green
 
-
     paletteFSHD = [
             (0, 0, 0),       # black
         (128, 0, 128),   # purple
         ]  
-    
-    # paletteDERMA = [
-    #     (0, 0, 0), # background - black
-    #     (128, 0, 128), # lesion - white
-    # ]
-    
-    # @DATASETS.register_module()
-    # class ThyroidUS(BaseSegDataset):
-    #     METAINFO = dict(classes = classes, palette = paletteThyroid)
-    #     def __init__(self, **kwargs):
-    #         super().__init__(img_suffix='.png',
-    #                         seg_map_suffix='.png',
-    #                         reduce_zero_label = False,
-    #                         **kwargs)
-            
-    # @DATASETS.register_module()
-    # class IMT(BaseSegDataset):
-    #     METAINFO = dict(classes = classes, palette = paletteIMT)
-    #     def __init__(self, **kwargs):
-    #         super().__init__(img_suffix='.png',
-    #                         seg_map_suffix='.png',
-    #                         reduce_zero_label = False,
-    #                         **kwargs)
-            
-    # @DATASETS.register_module()
-    # class DTP(BaseSegDataset):
-    #     METAINFO = dict(classes = classes, palette = paletteDTP)
-    #     def __init__(self, **kwargs):
-    #         super().__init__(img_suffix='.png',
-    #                         seg_map_suffix='.png',
-    #                         reduce_zero_label = False,
-    #                         **kwargs)
-    
-    # @DATASETS.register_module()
-    # class VERSE(BaseSegDataset):
-    #     METAINFO = dict(classes = classes, palette = paletteVERSE)
-    #     def __init__(self, **kwargs):
-    #         super().__init__(img_suffix='.png',
-    #                         seg_map_suffix='.png',
-    #                         reduce_zero_label = False,
-    #                         **kwargs)
-    
-    # # @DATASETS.register_module()
-    # class RETINA(BaseSegDataset):
-    #     METAINFO = dict(classes = classes, palette = paletteRETINA)
-    #     def __init__(self, **kwargs):
-    #         super().__init__(img_suffix='.png',
-    #                         seg_map_suffix='.png',
-    #                         reduce_zero_label = False,
-    #                         **kwargs)
             
     @DATASETS.register_module()
     class FSHD(BaseSegDataset):
@@ -234,15 +110,6 @@ def main():
                             reduce_zero_label = False,
                             ignore_index=255,
                             **kwargs)
-
-    # @DATASETS.register_module()
-    # class DERMA(BaseSegDataset):
-    #     METAINFO = dict(classes = classes, palette = paletteDERMA)
-    #     def __init__(self, **kwargs):
-    #         super().__init__(img_suffix='.png',
-    #                         seg_map_suffix='.png',
-    #                         reduce_zero_label = False,
-    #                         **kwargs)
             
     # load config
     cfg = Config.fromfile(args.config)
