@@ -54,53 +54,15 @@ def parse_args():
 def main():
     args = parse_args()
     
-    # # classes FSHD
-    # classes = ('background',
-    #         'Biceps_brachii', # 001 - 1 for label
-    #         'Deltoideus', # 002
-    #         'Depressor_anguli_oris', # 003
-    #         'Digastricus', # 004
-    #         'Gastrocnemius_medial_head', # 008
-    #         'Geniohyoideus', # 009
-    #         'Masseter', # 011
-    #         'Mentalis', # 012
-    #         'Orbicularis_oris', # 013
-    #         'Rectus_abdominis', # 015
-    #         'Rectus_femoris', # 016
-    #         'Temporalis', # 017
-    #         'Tibialis_anterior', # 018
-    #         'Trapezius', # 019
-    #         'Vastus_lateralis', # 020
-    #         'Zygomaticus')  # 021
-    
     # classes FSHD
     classes = ('background',
             'muscle')
-
-    # paletteFSHD = [
-    #         (0, 0, 0),       # black
-    #     (128, 0, 128),   # purple
-    #     (0, 128, 128),   # teal
-    #     (128, 128, 128), # gray
-    #     (255, 0, 0),     # red
-    #     (0, 255, 0),     # lime
-    #     (255, 255, 0),   # yellow
-    #     (0, 0, 255),     # blue
-    #     (255, 0, 255),   # fuchsia
-    #     (0, 255, 255),   # aqua
-    #     (192, 192, 192), # silver
-    #     (255, 255, 255), # white
-    #     (255, 99, 71),   # tomato
-    #     (255, 69, 0),    # orange-red
-    #     (255, 165, 0),   # orange
-    #     (255, 215, 0),   # gold
-    #     (46, 139, 87)]   # sea green
 
     paletteFSHD = [
             (0, 0, 0),       # black
         (128, 0, 128),   # purple
         ]  
-            
+    
     @DATASETS.register_module()
     class FSHD(BaseSegDataset):
         METAINFO = dict(classes = classes, palette = paletteFSHD)
