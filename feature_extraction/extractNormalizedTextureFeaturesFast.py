@@ -534,7 +534,7 @@ logger = logging.getLogger("radiomics")
 logger.setLevel(logging.ERROR)
 
 # Define base preds_dirs with a placeholder for muscle name
-preds_dirs = ["/mnt/data/dataset_training/subset_1/results_inference_2/pred/"]
+preds_dirs = ["/mnt/data/model_to_train/results_round_1_with_class_weights/testing_results/pred/"]
 gt_dirs = ["/mnt/data/dataset_training/subset_1/together/masks/"]
 image_dirs = ["/mnt/data/dataset_training/subset_1/together/images/"]
 
@@ -629,11 +629,11 @@ for pred_fold, gt_fold, img_fold in zip(preds_dirs, gt_dirs, image_dirs):
 df = pd.DataFrame().from_dict(summary)
 
 # Save the DataFrame to a single Excel file
-output_excel_path = f'/mnt/data/dataset_training/subset_1/results_inference_2/segmentation_summary_{net}_{experiment}.xlsx'
+output_excel_path = f'/mnt/data/model_to_train/results_round_1_with_class_weights/testing_results/segmentation_summary_{net}_{experiment}.xlsx'
 df.to_excel(output_excel_path, index=False)
 print(f"\nSummary Excel file saved to: {output_excel_path}")
 
 # Optionally, save the DataFrame to a JSON file as well
-output_json_path = f'/mnt/data/dataset_training/subset_1/results_inference_2/segmentation_summary_{net}_{experiment}.json'
+output_json_path = f'/mnt/data/model_to_train/results_round_1_with_class_weights/testing_results/segmentation_summary_{net}_{experiment}.json'
 df.to_json(output_json_path, indent=4)
 print(f"Summary JSON file saved to: {output_json_path}")
