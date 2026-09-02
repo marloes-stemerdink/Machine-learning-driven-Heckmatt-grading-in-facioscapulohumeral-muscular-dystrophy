@@ -29,14 +29,14 @@ resume = False
 tta_model = dict(type='SegTTAModel')
 
 # training schedule for 80k
-train_cfg = dict(type='IterBasedTrainLoop', max_iters=80000, val_interval=8000)
+train_cfg = dict(type='IterBasedTrainLoop', max_iters=500, val_interval=50)
 val_cfg = dict(type='ValLoop')
 test_cfg = dict(type='TestLoop')
 default_hooks = dict(
     timer=dict(type='IterTimerHook'),
     logger=dict(type='LoggerHook', interval=50, log_metric_by_epoch=False),
     param_scheduler=dict(type='ParamSchedulerHook'),
-    checkpoint=dict(type='CheckpointHook', by_epoch=False, interval=8000),
+    checkpoint=dict(type='CheckpointHook', by_epoch=False, interval=500),
     sampler_seed=dict(type='DistSamplerSeedHook'),
     visualization=dict(type='SegVisualizationHook'))
 
@@ -179,7 +179,7 @@ model = dict(
                     align_corners=False,
                     loss_decode=dict(
                         type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0,
-                        class_weight=[0.69314718, 2.39377455]))),
+                        class_weight=[0.69314718, 2.39377455], avg_non_ignore=True))),
     auxiliary_head=dict(
         type='FCNHead',
         ignore_index=255,
@@ -194,7 +194,7 @@ model = dict(
         align_corners=False,
         loss_decode=dict(
             type='CrossEntropyLoss', use_sigmoid=False, loss_weight=0.4,
-            class_weight=[0.69314718, 2.39377455])),
+            class_weight=[0.69314718, 2.39377455], avg_non_ignore=True)),
     # model training and testing settings
     train_cfg=dict(),
     test_cfg=dict(mode='whole'))
