@@ -22,6 +22,23 @@ from functools import partial
 muscle_code_df = pd.read_csv('data/Muscles.csv')
 code_to_muscle = dict(zip(muscle_code_df['Code'].astype(str).str.zfill(3), muscle_code_df['Muscle']))
 
+# Define directories
+preds_dirs = ["/mnt/data/model_to_train/results_round_1_with_class_weights/test123/pred/"]  # predicted masks
+gt_dirs = ["/mnt/data/dataset_training/subset_1/together/masks/"]   # ground truth masks
+image_dirs = ["/mnt/data/dataset_training/subset_1/together/images/"]   # images
+
+# Output directories
+net = 'knet_swin_mod'
+experiment = 'muscle_specific'
+
+output_path = '/mnt/data/model_to_train/results_round_1_with_class_weights/test123/'
+
+output_json_path = os.path.join(output_path,f"segmentation_summary_{net}_{experiment}.json")
+output_excel_path = os.path.join(output_path,f"segmentation_summary_{net}_{experiment}.xlsx")
+# output_json_path = f'/mnt/data/model_to_train/results_round_1_with_class_weights/testing_results/segmentation_summary_{net}_{experiment}.json'
+# output_excel_path = f'/mnt/data/model_to_train/results_round_1_with_class_weights/testing_results/segmentation_summary_{net}_{experiment}.xlsx'
+
+
 def retain_largest_object(mask):
     labeled, num = label(mask)
     sizes = np.bincount(labeled.ravel())
@@ -533,14 +550,6 @@ def process_file(file, fold, pred_fold, gt_fold, img_fold, muscle, classes, clas
 logger = logging.getLogger("radiomics")
 logger.setLevel(logging.ERROR)
 
-# Define base preds_dirs with a placeholder for muscle name
-preds_dirs = ["/mnt/data/model_to_train/results_round_1_with_class_weights/testing_results/pred/"]
-gt_dirs = ["/mnt/data/dataset_training/subset_1/together/masks/"]
-image_dirs = ["/mnt/data/dataset_training/subset_1/together/images/"]
-
-net = 'knet_swin_mod'
-experiment = 'muscle_specific'
-
 # Define class and palette for better visualization
 classes = [
     'background',
@@ -629,11 +638,9 @@ for pred_fold, gt_fold, img_fold in zip(preds_dirs, gt_dirs, image_dirs):
 df = pd.DataFrame().from_dict(summary)
 
 # Save the DataFrame to a single Excel file
-output_excel_path = f'/mnt/data/model_to_train/results_round_1_with_class_weights/testing_results/segmentation_summary_{net}_{experiment}.xlsx'
 df.to_excel(output_excel_path, index=False)
 print(f"\nSummary Excel file saved to: {output_excel_path}")
 
 # Optionally, save the DataFrame to a JSON file as well
-output_json_path = f'/mnt/data/model_to_train/results_round_1_with_class_weights/testing_results/segmentation_summary_{net}_{experiment}.json'
 df.to_json(output_json_path, indent=4)
 print(f"Summary JSON file saved to: {output_json_path}")
