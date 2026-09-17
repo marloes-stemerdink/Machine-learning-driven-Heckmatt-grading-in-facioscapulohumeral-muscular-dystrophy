@@ -16,43 +16,6 @@ plt.ioff()
 RESULTS_DIR = Path('/mnt/data/dataset_training/subset_1/results_inference_2/')
 testing_round = 'base_model'
 
-# TODO delete, not relevant for binary model
-# def display_confusion_matrix_and_scores(y_true, y_pred, labels, fold='total', experiment='knet_swin_binary', output_dir=None):
-#     """Displays and saves confusion matrices and classification reports."""
-#     cm = confusion_matrix(y_true, y_pred, labels=labels)
-#     print("Confusion Matrix:")
-#     plt.figure(figsize=(16, 14))
-#     cmap = ListedColormap(sns.color_palette("tab10", n_colors=256).as_hex())  # Using 'tab10' palette
-#     sns.heatmap(cm, annot=True, fmt='d', cmap=cmap, xticklabels=labels, yticklabels=labels)
-#     plt.ylabel('True label')
-#     plt.xlabel('Predicted label')
-#     plt.title(f'Confusion Matrix for {fold}')
-#     plt.xticks(rotation=90)
-#     if output_dir:
-#         output_dir.mkdir(parents=True, exist_ok=True)
-#         plt.savefig(output_dir / f'{experiment}_confusion_matrix_{fold}.png', dpi=300, bbox_inches='tight')
-#     plt.close()
-
-#     normalized_cm = cm.astype('float') / (cm.sum(axis=1)[:, np.newaxis] + np.finfo(float).eps)
-#     print("Normalized Confusion Matrix:")
-#     plt.figure(figsize=(16, 14))
-#     sns.heatmap(normalized_cm, annot=True, fmt='.1%', cmap=cmap, xticklabels=labels, yticklabels=labels)
-#     plt.ylabel('True label')
-#     plt.xlabel('Predicted label')
-#     plt.title(f'Normalized Confusion Matrix for {fold}')
-#     plt.xticks(rotation=90)
-#     if output_dir:
-#         plt.savefig(output_dir / f'{experiment}_normalized_confusion_matrix_{fold}.png', dpi=300, bbox_inches='tight')
-#     plt.close()
-
-#     report = classification_report(y_true, y_pred, labels=labels, zero_division=0, output_dict=True)
-#     report_df = pd.DataFrame(report).transpose()
-#     excel_dir = RESULTS_DIR / 'EXCEL'
-#     excel_dir.mkdir(parents=True, exist_ok=True)
-#     report_df.to_excel(excel_dir / f'{experiment}_classification_report_{fold}.xlsx', sheet_name=f'{fold}')
-#     print("Classification Report saved to Excel.")
-
-
 def load_data(experiment):
     """Loads segmentation summary data.
 
@@ -130,13 +93,6 @@ def plot_boxplots(df, experiment):
     boxplot_dir = RESULTS_DIR / 'BOXPLOT'
     boxplot_dir.mkdir(parents=True, exist_ok=True)
     metrics = ['iou', 'prec', 'rec']
-    # for metric in metrics:
-    #     plt.figure(figsize=(16, 8))
-    #     sns.boxplot(x='Muscle', y=metric, hue='Fold', data=df, palette='tab10')  # Using 'tab10' palette
-    #     plt.title(f'Boxplot of {metric} grouped by Muscle and Fold')
-    #     plt.xticks(rotation=90)
-    #     plt.savefig(boxplot_dir / f'{experiment}_boxplot_{metric}_by_fold.png', dpi=300, bbox_inches='tight')
-    #     plt.close()
 
     # Create a single boxplot for the whole dataset
     for metric in metrics:
@@ -210,21 +166,7 @@ def main():
         mean_iou_by_fold.to_excel(writer, sheet_name='mean_iou', index=False)
         std_iou_by_fold.to_excel(writer, sheet_name='std_iou', index=False)
 
-    # # Plot confusion matrices
     classes = [cl for cl in df_processed['Muscle'].unique() if cl != 'background']
-    # confusion_matrix_dir = RESULTS_DIR / 'CONFUSION_MATRIX'
-
-    # # Overall confusion matrix
-    # display_confusion_matrix_and_scores(
-    #     df_processed['Muscle'], df_processed['Muscle'], classes, 'total', experiment, confusion_matrix_dir)
-
-    # # Confusion matrix per fold
-    # folds = df_processed['Fold'].unique()
-    # for fold in folds:
-    #     print(f"=== Confusion matrix and scores for Fold: {fold} ===")
-    #     subset_df = df_processed[df_processed['Fold'] == fold]
-    #     display_confusion_matrix_and_scores(
-    #         subset_df['Muscle'], subset_df['Muscle'], classes, fold, experiment, confusion_matrix_dir)
 
     # Plot boxplots
     plot_boxplots(df_processed, experiment)
