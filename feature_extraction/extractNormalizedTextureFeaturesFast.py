@@ -23,7 +23,7 @@ muscle_code_df = pd.read_csv('data/Muscles.csv')
 code_to_muscle = dict(zip(muscle_code_df['Code'].astype(str).str.zfill(3), muscle_code_df['Muscle']))
 
 # Define directories
-preds_dirs = ["/mnt/data/model_to_train/results_round_1_with_class_weights/test123/pred/"]  # predicted masks
+preds_dirs = ["/mnt/data/model_to_train/subset_4/testing/pred/"]  # predicted masks
 gt_dirs = ["/mnt/data/dataset_training/subset_1/together/masks/"]   # ground truth masks
 image_dirs = ["/mnt/data/dataset_training/subset_1/together/images/"]   # images
 
@@ -31,7 +31,7 @@ image_dirs = ["/mnt/data/dataset_training/subset_1/together/images/"]   # images
 net = 'knet_swin_mod'
 experiment = 'muscle_specific'
 
-output_path = '/mnt/data/model_to_train/results_round_1_with_class_weights/test123/'
+output_path = '/mnt/data/model_to_train/subset_4/testing/'
 
 output_json_path = os.path.join(output_path,f"segmentation_summary_{net}_{experiment}.json")
 output_excel_path = os.path.join(output_path,f"segmentation_summary_{net}_{experiment}.xlsx")
